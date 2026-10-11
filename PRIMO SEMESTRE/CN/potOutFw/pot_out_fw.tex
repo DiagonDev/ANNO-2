@@ -179,6 +179,7 @@ the same in all relevant aspects other than the treatment $X$).
 \newline
 Another aspect in which this assumption is crucial is that it allows us to \textbf{identify causal effects}, in other words, it satisfies the property of \textbf{Identifiability}:
 \begin{definition}[Identifiability]
+\label{def:identifiability}
 A causal quantity (e.g., $\mathbb{E}[Y(x)]$) is identifiable if it can be computed exclusively from purely statistical quantities derived from observational data (e.g., $\mathbb{E}[Y \mid X = x]$).
 \end{definition}
 However, making this assumption in observational studies is often \textbf{unrealistic} 
@@ -284,11 +285,31 @@ or $P(X = 0 \mid \mathbf{Z} = \mathbf{z}) = 0$), the expression results in a div
 making the causal effect undefined for that stratum. This makes positivity essential to define causal 
 effect.
 \end{remark}
-
-\textbf{SLIDE 39}
-
-
-
+\noindent
+The last two assumptions are part of the \textbf{Stable Unit Treatment Value Assumption (SUTVA)}, that 
+is satified if unit i's outcome $Y_i$ is a function of unit i's treatment $X_i$. SUTVA is a combination
+of two assumptions:
+\begin{definition}[No Interference]
+    The outcome $Y_i$ of each unit $i$ is unaffected by anyone else's treatment $X_j$ 
+    for $j \neq i$.
+    \begin{equation}
+        Y_i(x_1,x_2,...,x_i,...,x_n) = Y_i(X_i)
+    \end{equation}
+\end{definition}
+\begin{definition}[Consistency]
+    If the treatment is X, then the observed outcome Y is
+    the potential outcome under treatment. Formally
+    \begin{equation}
+    X = x \implies Y = Y(x)\ or\ equivalently\ Y = Y(X)
+    \end{equation}
+\end{definition}
+The consistency assumption might seem trivial, but it can be violated in practice. For example,
+if X = {"get a dog","don't get a dog"}, the potential outcome Y("get a dog") cuold be 1 because i needed
+an energetic dog, but if i got a lazy dog the potential outcome Y("get a dog") could be 0.
+In this case, the treatment is not well-defined and the consistency assumption is violated.
+\newline
+With all this assumptions we can derived the \textbf{Adjustment Formula} starting from the
+ATE \ref{eq:ate_init}
 
 \begin{definition}[Adjustment Formula]
     Given the assumptions of unconfoundedness, positivity, consistency,
@@ -297,3 +318,126 @@ effect.
         \tau \triangleq E[\tau_i] = \mathbb{E_Z}[\mathbb{E}[Y \vert{} X = 1,Z] - \mathbb{E}[Y \vert{} X = 0,Z]]
     \end{equation}
 \end{definition}
+\begin{dimostration}
+    \begin{align*}
+        \mathbb{E}[Y(1) - Y(0)] &= \mathbb{E_Z}[\mathbb{E}[Y(1) - Y(0) \vert{} Z]]\ (linearity\ of\ expectation)\\
+        &= \mathbb{E_Z}[\mathbb{E}[Y(1) \vert{} Z] - \mathbb{E}[Y(0) \vert{} Z]]\ (law\ of\ iterated\ expectations)\\
+        &= \mathbb{E_Z}[\mathbb{E}[Y(1) \vert{} X = 1, Z] - \mathbb{E}[Y(0) \vert{} X = 0, Z]]\ (unconfoundedness\ and\ positivity)\\
+        &= \mathbb{E_Z}[\mathbb{E}[Y \vert{} X = 1, Z] - \mathbb{E}[Y \vert{} X = 0, Z]]\ (consistecy)
+    \end{align*}
+\end{dimostration}
+
+\section{Core Terminology: Estimands, Estimators, and Estimates}
+\begin{definition}[Estimand]
+    An estimand is a quantity that we want to estimate.    
+\end{definition}
+\begin{definition}[Estimate]
+    An estimate is an approximantion of some estimand, which we get using the data
+\end{definition}
+\begin{definition}[Estimator]
+    An estimator is a function that maps a dataset to an estimate of the estimand.
+\end{definition}
+Most of the time, estimators use a model to estimate quantities (\textbf{Model-Assisted Estimators})
+\begin{definition}[Estimation]
+    An estimation is the process of using an estimator to compute an estimate of an estimand.
+\end{definition}
+\begin{definition}[Causal Estimand]
+    \label{def:causal_estimand}
+    A causal estimand is any estimand that contains a potential outcome in it. 
+\end{definition}
+\begin{definition}[Statistical Estimand]
+    \label{def:stat_estimand}
+    A statistical estimand is any estimand that does not contain a potential outcome in it.
+\end{definition}
+For example, in 
+\[
+\mathbb{E}[Y(1) - Y(0)] = \mathbb{E}_{\mathbf{Z}}[\mathbb{E}[Y \mid X = 1, \mathbf{Z}] - \mathbb{E}[Y \mid X = 0, \mathbf{Z}]]
+\] 
+$\mathbb{E}[Y(1) - Y(0)]$ is the \textbf{Causal Estimand} and 
+$\mathbb{E}_{\mathbf{Z}}[\mathbb{E}[Y \mid X = 1, \mathbf{Z}] - \mathbb{E}[Y \mid X = 0, \mathbf{Z}]]$ 
+is the \textbf{Statistical Estimand}.
+So using the defs \ref{def:identifiability}, \ref{def:causal_estimand}, and \ref{def:stat_estimand} we can define:
+\begin{definition}[Identification]
+    The process of moving from a causal estimand
+    to an equivalent statistical estimand.  
+\end{definition}
+In Figure \ref{fig:estimation_pipeline} is depicted the process from a causal estimand to an estimate.
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        node distance=6cm,
+        every node/.style={font=\sffamily\bfseries},
+        box/.style={
+            rectangle, 
+            rounded corners=6pt, 
+            draw=white, 
+            fill=yellow!90!black, 
+            text=black, 
+            align=center, 
+            minimum width=3cm, 
+            minimum height=1.6cm,
+            thick
+        },
+        arrow/.style={-{Stealth[length=3.5mm, width=2.5mm]}, thick, black}
+    ]
+        % Nodi del diagramma
+        \node[box] (ce) {CAUSAL\\ESTIMAND};
+        \node[box, right of=ce] (se) {STATISTICAL\\ESTIMAND};
+        \node[box, right of=se] (est) {ESTIMATE};
+
+        % Frecce e etichette
+        \draw[arrow] (ce) -- node[above, font=\sffamily\bfseries, text=black] {IDENTIFICATION} (se);
+        \draw[arrow] (se) -- node[above, font=\sffamily\bfseries, text=black] {ESTIMATION} (est);
+    \end{tikzpicture}
+    \caption{Relationship between causal estimands, statistical estimands, and final estimates.}
+    \label{fig:estimation_pipeline}
+\end{figure}
+
+\section{A Practical Application: Estimating the ATE of Sodium Intake}
+Let us examine an epidemiological study analyzing the causal effect of daily sodium intake ($X$) on 
+systolic blood pressure ($Y$). 
+Since sodium intake is a continuous variable, we binarize it for simplicity:
+\begin{itemize}
+    \item $X = 1$ if daily sodium intake $\geq 3.5\text{ gr}$.
+    \item $X = 0$ if daily sodium intake $< 3.5\text{ gr}$.
+\end{itemize}
+The dataset also includes individual-level covariates $\mathbf{Z} = 
+\{\text{Age, Amount of protein in the urine}\}$. 
+Because this example relies on a simulation study, the true underlying average treatment effect is 
+known: $\mathbb{E}[Y(1) - Y(0)] = 1.05$.
+
+\subsection{Model-Assisted Estimation via Linear Regression}
+To compute the estimate, we proceed operationally through the following steps:
+\begin{enumerate}
+    \item We assume consistency, positivity, and unconfoundedness given $\mathbf{Z}$.
+    \item We take the outer expectation over $\mathbf{Z}$ in the adjustment formula and replace 
+    it with an empirical mean over the $n$ samples in the dataset:
+    \[
+        \frac{1}{n} \sum_{i=1}^{n} \left[ \mathbb{E}[Y \mid X = 1, \mathbf{Z} = \mathbf{z}_i] - \mathbb{E}[Y \mid X = 0, \mathbf{Z} = \mathbf{z}_i] \right]
+    \]
+    \item We fit a machine learning model to estimate the conditional expectation 
+    $\mathbb{E}[Y \mid x, \mathbf{z}]$. Specifically, we use 
+    \textbf{linear regression} (which performs well here since blood pressure is generated as a 
+    linear combination of sodium intake, age, and urinary protein).
+\end{enumerate}
+\noindent
+Using this model-assisted estimator with proper covariate adjustment yields:
+\[
+    \mathbb{E}[Y(1) - Y(0)] = 0.856
+\]
+resulting in a relative error of[cite: 10]:
+\[
+    \text{\%error} = \frac{|0.856 - 1.05|}{1.05} \times 100\% = 18\%
+\]
+
+\subsection{The Peril of Naive Estimation}
+By contrast, if we were to ignore the confounders $\mathbf{Z}$ and naively regress $Y$ solely on $X$ (daily sodium intake), we would obtain:
+\[
+    \mathbb{E}[Y(1) - Y(0)] = 5.37
+\]
+which translates to a massive relative error of:
+\[
+    \text{\%error} = \frac{|5.37 - 1.05|}{1.05} \times 100\% = 411\%
+\]
+This striking discrepancy highlights why proper conditioning via the adjustment formula is critical 
+to prevent severe confounding bias in observational data.
