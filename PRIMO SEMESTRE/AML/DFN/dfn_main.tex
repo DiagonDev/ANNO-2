@@ -1,0 +1,89 @@
+\section{Notation}
+To maintain consistency throughout this document, we adopt the standard 
+notation summarized below, largely following standard deep learning 
+literature:
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Symbol} & \textbf{Description} \\
+\midrule
+$x \in \mathbb{R}^d$ & one input, with $d$ features \\
+$y$ (or $\mathbf{y}$) & its target: a number, a class, or a vector \\
+$f^*$ & the unknown true function, $y = f^*(x)$ \\
+$n$ & number of training examples \\
+$(x^{(i)}, y^{(i)})$ & the $i$-th training example \\
+$X \in \mathbb{R}^{n \times d}$ & all inputs, one example per row \\
+$m$ & minibatch size (examples per update) \\
+$k$ & number of classes \\
+\bottomrule
+\end{tabular}
+\caption{Data notation summary.}
+\label{tab:data_notation}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Symbol} & \textbf{Description} \\
+\midrule
+$L$ & number of layers (the depth) \\
+$d_l$ & number of units in layer $l$ (its width); $d_0 = d$ \\
+$W^{(l)}, b^{(l)}$ & weight matrix ($d_{l-1} \times d_l$) and bias vector of layer $l$ \\
+$z^{(l)}$ & pre-activation: $W^{(l)\top} h^{(l-1)} + b^{(l)}$ \\
+$h^{(l)} = g(z^{(l)})$ & activation of layer $l$; $h^{(0)} = x$ \\
+$g$ & activation function of hidden units \\
+$o$ & output function (identity, sigmoid or softmax) \\
+$\theta$ & all weights and biases together \\
+\bottomrule
+\end{tabular}
+\caption{Network notation summary.}
+\label{tab:network_notation}
+\end{table}
+
+\noindent\textit{Note on indexing:} Superscripts in parentheses, such as 
+$^{(l)}$ or $^{(i)}$, always denote indices (referring to layers or training
+examples, respectively) and are never used as mathematical powers. 
+Vectors are represented in bold lowercase letters, matrices in bold 
+uppercase, and scalars in standard font.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Symbol} & \textbf{Description} \\
+\midrule
+$\hat{y} = f(x; \theta)$ & prediction of the network \\
+$\ell(\hat{y}, y)$ & loss on one example \\
+$J(\theta)$ & cost: average loss on the training set \\
+$\nabla_\theta J$ & gradient: vector of all $\partial J / \partial \theta_j$ \\
+$\eta$ & learning rate (step size) \\
+logit $z$ & the score before the sigmoid or softmax \\
+\bottomrule
+\end{tabular}
+\caption{Learning and optimization notation summary.}
+\label{tab:learning_notation}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Symbol} & \textbf{Description} \\
+\midrule
+$\sigma(z) = \frac{1}{1 + e^{-z}}$ & logistic sigmoid, values in $(0, 1)$ \\
+$\zeta(a) = \log(1 + e^a)$ & softplus: a smooth version of $\max\{0, a\}$ \\
+$e_y \in \{0, 1\}^k$ & one-hot vector: 1 in position $y$, 0 elsewhere \\
+$\mathbb{I}[\text{cond}]$ & indicator: 1 if cond is true, else 0 \\
+$\mathbf{1}$ & vector of ones \\
+$\odot$ & element-wise product \\
+\bottomrule
+\end{tabular}
+\caption{Functions and symbols notation summary.}
+\label{tab:functions_notation}
+\end{table}

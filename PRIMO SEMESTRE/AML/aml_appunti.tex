@@ -10,15 +10,24 @@
 \usepackage{tikz}
 \usepackage{subcaption}
 \usepackage{bm}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usetikzlibrary{arrows.meta, positioning}
 \newtheorem{definition}{Definition}
 \newtheorem{remark}{Remark}
+\newtheorem{dimostration}{Dimostration}
 \begin{document}
 
 \input{frontispiece.tex}
-
+\tableofcontents
 \newpage 
 \chapter{Introduction to Deep Learning}
 \input{introduction/intro.tex}
+
+\chapter{Linear Models}
+\input{LinearModels/linear_models.tex}
+
+\chapter{Deep Feedforward Networks}
+\input{DFN/dfn_main.tex}
 
 \end{document}
