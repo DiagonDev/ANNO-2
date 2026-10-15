@@ -326,8 +326,7 @@ a non-linear function (e.g., the S-shaped sigmoid curve), this function is stric
 monotonic and only rescales the score. Consequently, the decision boundary,the region where the 
 model decides to switch classes, remains a flat \textbf{hyperplane} ($z = 0$).
 \newline
-This shows a problem: there is no interaction between inputs, and the only way to fix it is to compute
-the score on new features $\phi(x)$. Consider the example in Fig \ref{fig:xor_problem}, suppose a linear
+Consider the example in Fig \ref{fig:xor_problem}, suppose a linear
 classifier $\hat{y} = 1$ $\iff$ $\mathbf{w}^{\top}\mathbf{x} + b \geq 0$. Now considering the four point
 of the XOR:
 \begin{itemize}
@@ -383,3 +382,15 @@ $b < 0$ so $w_1 + w_2 + b > 0$ but this is contradiction with the fourth conditi
     \caption{Geometric representation of the XOR problem showing linear non-separability.}
     \label{fig:xor_problem}
 \end{figure}
+The only fix to solve those type of problem it is to compute the score on new features $\phi(x)$.
+The \textbf{Representation} $\phi : \mathbb{R^d} \implies \mathbb{R^D}$, turns the d raw inputs into D
+new features and then the model use those feature in the logit:
+\[
+f(\mathbf{x}; \theta, \mathbf{w}) = \phi(\mathbf{x}; \theta)^\top \mathbf{w} + b
+\]
+$\phi(x)$ can be obtained in three ways:
+\begin{itemize}
+    \item \textbf{Generic $\phi$}: a fixed rich map that poorly generalizes on hard problems
+    \item \textbf{Hand designed $\phi$}: written by experts, expensive and demanding
+    \item \textbf{Learned $\phi(\mathbf{x}; \theta)$}: learned by gradient descent
+\end{itemize}
