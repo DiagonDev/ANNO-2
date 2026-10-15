@@ -1,4 +1,225 @@
-We saw the \textbf{XOR problem} as an example of how linear models limits, 
+ Also called multilayer perceptrons, a feedforward network is a composition of functions
+with a certain \textbf{Depth}(number of layers with parameters), \textbf{Width}(number
+of units $dI$ in layer $I$). The goal of training is to choose $\theta$ so that $$f(x; \theta) \approx f^*(x)$$
+on new inputs, not only on training set. 
+\section{Anatomy of a Unit and of a Layer}
+
+For one layer of $m$ units (all read the same $\mathbf{x}$):
+\begin{equation}
+    \mathbf{h} = g(\mathbf{W}^\top \mathbf{x} + \mathbf{b}), \quad \mathbf{x} \in \mathbb{R}^d, \; \mathbf{W} \in \mathbb{R}^{d \times m}, \; \mathbf{b} \in \mathbb{R}^m
+\end{equation}
+Column $j$ of $\mathbf{W}$ holds the weights of unit $j$; $g$ is applied to each entry separately.
+\newline
+$z = \mathbf{w}^\top \mathbf{x} + b$ is the \textbf{pre-activation}: a weighted sum plus bias. $h = g(z)$ is the \textbf{activation}; $g$ is a fixed non-linear function, e.g. the ReLU $g(z) = \max\{0, z\}$.
+\newline
+As an example with $d = 3$ inputs and $m = 2$ ReLU units:
+\begin{align*}
+    \mathbf{x} &= (1, 0, 2), \quad \mathbf{W} = \begin{bmatrix} 1 & -1 \\ 0 & 2 \\ 1 & 1 \end{bmatrix}, \quad \mathbf{b} = (0, -1) \\
+    \mathbf{z} &= \mathbf{W}^\top \mathbf{x} + \mathbf{b} = (1 + 0 + 2, -1 + 0 + 2) + (0, -1) = (3, 0) \\
+    \mathbf{h} &= \max\{0, \mathbf{z}\} = (3, 0)
+\end{align*}
+
+For $n$ examples at once: $\mathbf{H} = g(\mathbf{X}\mathbf{W} + \mathbf{1}\mathbf{b}^\top)$; row $i$ of $\mathbf{H}$ is the layer output for example $i$.
+
+\begin{tikzpicture}[
+    input node/.style={circle, draw=green!40!black, fill=green!20, thick, minimum size=8mm, inner sep=0pt},
+    neuron/.style={circle, draw=green!50!black, fill=green!60!black, text=white, thick, minimum size=1.2cm, inner sep=0pt},
+    >=Stealth
+]
+
+    % Nodi di input
+    \node[input node] (x1) at (0, 2) {$x_1$};
+    \node[input node] (x2) at (0, 0) {$x_2$};
+    \node[input node] (x3) at (0, -2) {$x_3$};
+
+    % Neurone centrale
+    \node[neuron] (neuron) at (3.5, 0) {$\sum \mid g$};
+    \node[below=2pt of neuron, font=\small] {$+b$};
+
+    % Archi con pesi
+    \draw[thick, black!60] (x1) -- node[above left, font=\small] {$w_1$} (neuron);
+    \draw[thick, black!60] (x2) -- node[above, font=\small] {$w_2$} (neuron);
+    \draw[thick, black!60] (x3) -- node[below left, font=\small] {$w_3$} (neuron);
+
+    % Uscita
+    \draw[thick, black!60, ->] (neuron) -- ++(1.5, 0) node[right, black, font=\small] {$h$};
+
+\end{tikzpicture}
+
+\begin{definition}[Saturation]
+    A unit is saturated when $|z|$ is so large that its output hardly changes: the slope $g'(z)$ is 
+    almost 0
+\end{definition}
+So when the slope is almost 0 the derivative is 0, is impossible to know from data how much the model
+has to change his parameters.
+
+\section{Multilayer Network in Matrix Form}
+The forward pass through an $L$-layer network is defined as:
+\begin{align*}
+    \mathbf{h}^{(0)} &= \mathbf{x} \\
+    \mathbf{h}^{(l)} &= g(\mathbf{W}^{(l)\top} \mathbf{h}^{(l-1)} + \mathbf{b}^{(l)}), \quad l = 1, \dots, L - 1 \\
+    \hat{\mathbf{y}} &= o(\mathbf{W}^{(L)\top} \mathbf{h}^{(L-1)} + \mathbf{b}^{(L)})
+\end{align*}
+\newline
+The last pre-activation, $\mathbf{z}^{(L)} = \mathbf{W}^{(L)\top} \mathbf{h}^{(L-1)} + \mathbf{b}^{(L)}$, is called the vector of \textbf{logits}; the output function $o$ (identity, sigmoid or softmax) turns it into the prediction.
+
+\begin{definition}[Number of parameters]
+Layer $l$ has $d_{l-1} \cdot d_l$ weights and $d_l$ biases:
+\begin{equation}
+    |\theta| = \sum_{l=1}^{L} (d_{l-1} + 1) d_l
+\end{equation}
+\end{definition}
+Most parameters sit in the first layer. In Fig \ref{tab:mnist_parameters} there is an example of 
+the calculus of parameters. The MLP is : $784 \to 256 \to 128 \to 10$. 
+Input: $28 \times 28 = 784$ pixels. Output: $10$ classes.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lccc}
+        \hline
+        Layer & $\mathbf{W}^{(l)}$ & biases & parameters \\
+        \hline
+        1 & $784 \times 256$ & $256$ & $200\,960$ \\
+        2 & $256 \times 128$ & $128$ & $32\,896$ \\
+        3 (output) & $128 \times 10$ & $10$ & $1\,290$ \\
+        \hline
+        \textbf{total} & & & \textbf{$235\,146$} \\
+        \hline
+    \end{tabular}
+    \caption{Parameter count breakdown for the MNIST network architecture.}
+    \label{tab:mnist_parameters}
+\end{table}
+
+\section{Solving XOR with NN}
+In the end of the last chapter we saw the limitations of linear model in the case of some problems like 
+XOR. With NN this problem can be solved with one hidden layer as shown in Fig \ref{fig:xor_batch_matrices}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[->, >=stealth, node distance=1.5cm, thick]
+        % Input nodes
+        \node[circle, draw=green!50!black, fill=green!20, minimum size=8mm] (x1) at (0,0) {$x_1$};
+        \node[circle, draw=green!50!black, fill=green!20, minimum size=8mm] (x2) at (2,0) {$x_2$};
+        
+        % Hidden nodes
+        \node[circle, draw=green!50!black, fill=green!50!black, text=white, minimum size=8mm] (h1) at (0.5,1.5) {$h_1$};
+        \node[circle, draw=green!50!black, fill=green!50!black, text=white, minimum size=8mm] (h2) at (1.5,1.5) {$h_2$};
+        
+        % Output node
+        \node[circle, draw=green!50!black, fill=olive!60, text=white, minimum size=8mm] (y) at (1,3) {$\hat{y}$};
+        
+        % Edges from input to hidden
+        \draw (x1) -- (h1);
+        \draw (x1) -- (h2);
+        \draw (x2) -- (h1);
+        \draw (x2) -- (h2) node[midway, right, font=\small, green!40!black] {$\mathbf{W}^{(1)}, \mathbf{b}^{(1)}$};
+        
+        % Edges from hidden to output
+        \draw (h1) -- (y);
+        \draw (h2) -- (y) node[midway, right, font=\small, green!40!black] {$\mathbf{w}^{(2)}, b^{(2)}$};
+    \end{tikzpicture}
+    \caption{Neural network architecture for the XOR problem.}
+    \label{fig:xor_network}
+\end{figure}
+\noindent
+The forward pass is defined as:
+\begin{equation*}
+    \hat{y} = \mathbf{w}^{(2)\top} \max\left\{0, \mathbf{W}^{(1)\top} \mathbf{x} + \mathbf{b}^{(1)}\right\} + b^{(2)}
+\end{equation*}
+
+$$\mathbf{W}^{(1)} = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix}, \quad \mathbf{b}^{(1)} = \begin{bmatrix} 0 \\ -1 \end{bmatrix}, \quad \mathbf{w}^{(2)} = \begin{bmatrix} 1 \\ -2 \end{bmatrix}, \quad b^{(2)} = 0$$
+
+2 inputs, 2 hidden units, 1 output: $4 + 2 + 2 + 1 = 9$ parameters.
+
+\begin{figure}[H]
+    \centering
+    \[
+    \underbrace{
+        \begin{bmatrix}
+            0 & 0 \\
+            0 & 1 \\
+            1 & 0 \\
+            1 & 1
+        \end{bmatrix}
+    }_{\mathbf{X}}
+    \longrightarrow
+    \underbrace{
+        \begin{bmatrix}
+            0 & 0 \\
+            1 & 1 \\
+            1 & 1 \\
+            2 & 2
+        \end{bmatrix}
+    }_{\mathbf{X}\mathbf{W}^{(1)}}
+    \longrightarrow
+    \text{add }\mathbf{b}^{(1)}\text{ to each row}
+    \longrightarrow
+    \underbrace{
+        \begin{bmatrix}
+            0 & -1 \\
+            1 & 0 \\
+            1 & 0 \\
+            2 & 1
+        \end{bmatrix}
+    }_{}
+    \longrightarrow
+    \underbrace{
+        \begin{bmatrix}
+            0 & 0 \\
+            1 & 0 \\
+            1 & 0 \\
+            2 & 1
+        \end{bmatrix}
+    }_{\max\{0, \cdot\}}
+    \longrightarrow
+    \underbrace{
+        \begin{bmatrix}
+            0 \\
+            1 \\
+            1 \\
+            0
+        \end{bmatrix}
+    }_{\times \mathbf{w}^{(2)} = \hat{\mathbf{y}}}
+    \]
+    \caption{Step-by-step matrix representation of the XOR forward pass for an entire batch.}
+    \label{fig:xor_batch_matrices}
+\end{figure}
+\noindent
+In $\mathbf{x}$-space no line separates the classes. In $\mathbf{h}$-space the two positive points 
+coincide and a line does:
+\begin{equation}
+    h_1 - 2h_2 = \frac{1}{2}
+\end{equation}
+\noindent
+The output layer is still a \textbf{linear score}, computed on $\mathbf{h} = \phi(\mathbf{x})$ 
+instead of $\mathbf{x}$.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{immagini/xor_nn.png} 
+    \caption{Difference between x-space and h-space}
+    \label{fig:xor_nn}
+\end{figure}
+
+\section{Hidden Unit as Feature Detectors}
+If we consider the \textit{trigonometric} form of the pre-activation function $z = \mathbf{w^Tx} + b
+= ||w||\ ||x||cos\theta + b$ where $\theta$ is the angle between $\mathbf{w}$ and $\mathbf{x}$. 
+For inputs of similar length, z is largest when $\mathbf{x}$ has the same direction of
+$\mathbf{w}$, so each hidden unit is a learned \textbf{template}. The bias estabilish how much strict 
+must be the correspondence for the unit to be activated. In the example showed in Fig 
+\ref{fig:h_as_feat_det}, the first layer units' become detectors of strokes (es. vertical lines) 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{immagini/h_as_feat_det.png} 
+    \caption{An 8x8 digit image flattened into 64 inputs}
+    \label{fig:h_as_feat_det}
+\end{figure}
+\noindent
+The limitation is that a unit is tied to fixed pixel position, so the same stroke elsewhere needs another unit.
+
+\section{Cost Functions and Output Units}
+
+\subsection{Gradient-Based Learning}
+
 
 \section{Notation}
 To maintain consistency throughout this document, we adopt the standard 
@@ -89,35 +310,3 @@ $\odot$ & element-wise product \\
 \caption{Functions and symbols notation summary.}
 \label{tab:functions_notation}
 \end{table}
-
-\section{FeedForward Networks}
-Also called multilayer perceptrons, a feedforward network is a composition of functions
-with a certain \textbf{Depth}(number of layers with parameters), \textbf{Width}(number
-of units $dI$ in layer $I$). The goal of training is to choose $\theta$ so that $$f(x; \theta) \approx f^*(x)$$
-on new inputs, not only on training set. 
-\subsection{Anatomy of a Unit and of a Layer}
-
-\begin{tikzpicture}[
-    input node/.style={circle, draw=green!40!black, fill=green!20, thick, minimum size=8mm, inner sep=0pt},
-    neuron/.style={circle, draw=green!50!black, fill=green!60!black, text=white, thick, minimum size=1.2cm, inner sep=0pt},
-    >=Stealth
-]
-
-    % Nodi di input
-    \node[input node] (x1) at (0, 2) {$x_1$};
-    \node[input node] (x2) at (0, 0) {$x_2$};
-    \node[input node] (x3) at (0, -2) {$x_3$};
-
-    % Neurone centrale
-    \node[neuron] (neuron) at (3.5, 0) {$\sum \mid g$};
-    \node[below=2pt of neuron, font=\small] {$+b$};
-
-    % Archi con pesi
-    \draw[thick, black!60] (x1) -- node[above left, font=\small] {$w_1$} (neuron);
-    \draw[thick, black!60] (x2) -- node[above, font=\small] {$w_2$} (neuron);
-    \draw[thick, black!60] (x3) -- node[below left, font=\small] {$w_3$} (neuron);
-
-    % Uscita
-    \draw[thick, black!60, ->] (neuron) -- ++(1.5, 0) node[right, black, font=\small] {$h$};
-
-\end{tikzpicture}
