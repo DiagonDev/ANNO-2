@@ -89,3 +89,35 @@ $\odot$ & element-wise product \\
 \caption{Functions and symbols notation summary.}
 \label{tab:functions_notation}
 \end{table}
+
+\section{FeedForward Networks}
+Also called multilayer perceptrons, a feedforward network is a composition of functions
+with a certain \textbf{Depth}(number of layers with parameters), \textbf{Width}(number
+of units $dI$ in layer $I$). The goal of training is to choose $\theta$ so that $$f(x; \theta) \approx f^*(x)$$
+on new inputs, not only on training set. 
+\subsection{Anatomy of a Unit and of a Layer}
+
+\begin{tikzpicture}[
+    input node/.style={circle, draw=green!40!black, fill=green!20, thick, minimum size=8mm, inner sep=0pt},
+    neuron/.style={circle, draw=green!50!black, fill=green!60!black, text=white, thick, minimum size=1.2cm, inner sep=0pt},
+    >=Stealth
+]
+
+    % Nodi di input
+    \node[input node] (x1) at (0, 2) {$x_1$};
+    \node[input node] (x2) at (0, 0) {$x_2$};
+    \node[input node] (x3) at (0, -2) {$x_3$};
+
+    % Neurone centrale
+    \node[neuron] (neuron) at (3.5, 0) {$\sum \mid g$};
+    \node[below=2pt of neuron, font=\small] {$+b$};
+
+    % Archi con pesi
+    \draw[thick, black!60] (x1) -- node[above left, font=\small] {$w_1$} (neuron);
+    \draw[thick, black!60] (x2) -- node[above, font=\small] {$w_2$} (neuron);
+    \draw[thick, black!60] (x3) -- node[below left, font=\small] {$w_3$} (neuron);
+
+    % Uscita
+    \draw[thick, black!60, ->] (neuron) -- ++(1.5, 0) node[right, black, font=\small] {$h$};
+
+\end{tikzpicture}
