@@ -216,9 +216,170 @@ must be the correspondence for the unit to be activated. In the example showed i
 \noindent
 The limitation is that a unit is tied to fixed pixel position, so the same stroke elsewhere needs another unit.
 
-\section{Cost Functions and Output Units}
-
+\section{Cost Functions}
+The cost function is a mathematical formula that measures the error between the network's predicted
+output and the actual target values across a dataset. 
+\begin{remark}
+    Some sources consider loss and cost to be synonyms, while others consider cost to refer to the 
+    entire dataset or a batch of data.
+\end{remark}
 \subsection{Gradient-Based Learning}
+As with linear models, the gradient-based learning is a foundamental training paradigm where model parameters
+are iteratively adjusted to minimize a cost function $J(\theta)$ using the \textbf{gradient descent algorithm}: 
+\begin{equation}
+    \theta \leftarrow \theta - \eta \nabla_{\theta} J
+\end{equation}
+\noindent where $\eta$ is the learning rate.
+\newline
+What changes in NN is the fact that the non-linearities make $\mathbf{J}$ \textbf{non-convex}, as shown in 
+Fig \ref{fig:gradient_based}, so gradient descent may stop in a minimum that is not the best one, and 
+where it stops depends on the starting $\theta$. In conclusion, the initial parameters $\theta$ must be 
+\textit{small} in order to start in a non-saturated range, and \textbf{random} because otherwise every
+hidden unit would compute the same thing and receive the same update (random values break this symmetry).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{immagini/gradient_based.png} 
+    \caption{Difference between convex and non-convex}
+    \label{fig:gradient_based}
+\end{figure}
+\noindent
+One optimization of the gradient-descent algorithm is the 
+\begin{definition}[Minibatch Stochastic Gradient Descent]
+The algorithm is repeated until the validation error stops improving. At each step, the algorithm:
+\begin{enumerate}
+    \item Picks $m$ training examples at random to form a minibatch $\mathcal{B}$.
+    \item Averages their gradients to compute $\hat{g} = \frac{1}{m} \sum_{i \in \mathcal{B}} 
+    \nabla_{\theta} \ell(f(\mathbf{x}^{(i)}; \theta), y^{(i)})$, where individual gradients 
+    are computed via back-propagation.
+    \item Takes an optimization step: $\theta \leftarrow \theta - \eta \hat{g}$ using learning rate 
+    $\eta$.
+\end{enumerate}
+\end{definition}
+\noindent 
+Here, $\hat{g}$ is a noisy but unbiased estimate of the true gradient $\nabla_{\theta} J$. 
+A complete pass over all $n$ training examples is called an epoch. The noise of the estimate 
+decreases as $1/\sqrt{m}$, with typical batch sizes ranging between $32$ and $512$ 
+($32 \le m \le 512$).
+
+\subsection{Maximum Likelihood}
+The cost function comes from maximum likelihood, the network defines a 
+\textbf{probability distribution} $p_{model}(y|\mathbf{x};\mathbf{\theta})$ over the possible targets. 
+An advantage of this approach is that is not necessary to design cost functions for each model.
+\begin{definition}[Maximum Likelihood]  
+    choose $\theta$ so that the correct answers get high probability. In other words, minimize the average
+    negative log-probability:
+    \begin{equation}
+        J(\theta) = -\frac{1}{n} \sum_{i=1}^{n} \log p_{\text{model}}(y^{(i)} \mid \mathbf{x}^{(i)}; \theta)
+    \end{equation}
+\end{definition}
+An other form of this function is
+\begin{equation}
+    $$\begin{equation} J(\boldsymbol{\theta}) = -\mathbb{E}_{\mathbf{x},\mathbf{y}\sim\hat{p}_{\text{data}}} \log p_{\text{model}}(\boldsymbol{y} \mid \boldsymbol{x}). \end{equation}$$
+\end{equation}
+where $\hat{p}_{\text{data}}$ gives probability 1/n to each training pair. This is also called \textbf{Cross-Entropy}.
+The negativity helps to avoid the problem of the saturation of the units of the NN.
+
+\subsubsection{Derivation: A Gaussian Output Gives the Squared Error}
+A practical application of this principle is choosing a Gaussian output distribution for the network, 
+assuming the target is the network output plus Gaussian noise with variance $s^2$:
+\begin{equation}
+    p_{\text{model}}(y \mid \mathbf{x}) = \mathcal{N}(y; f(\mathbf{x}; \boldsymbol{\theta}), s^2) = \frac{1}{\sqrt{2\pi s^2}} \exp\left(-\frac{(y - f(\mathbf{x}; \boldsymbol{\theta}))^2}{2s^2}\right)
+\end{equation}
+Taking the negative log-probability yields:
+\begin{equation}
+    -\log p_{\text{model}}(y \mid \mathbf{x}) = \frac{1}{2s^2} (y - f(\mathbf{x}; \boldsymbol{\theta}))^2 + \frac{1}{2}\log(2\pi s^2)
+\end{equation}
+Since the last term does not depend on $\boldsymbol{\theta}$, minimizing the average negative 
+log-likelihood over the dataset leads directly to the Mean Squared Error cost function:
+\begin{equation}
+    J(\boldsymbol{\theta}) = \frac{1}{2s^2} \cdot \frac{1}{n} \sum_{i} \left(y^{(i)} - f(\mathbf{x}^{(i)}; \boldsymbol{\theta})\right)^2 + \text{const}
+\end{equation}
+Thus, under a Gaussian assumption, maximum likelihood is equivalent to minimizing the squared error.
+\newline
+\textbf{Mean absolute or squared error} often lead to poor results when used with gradient-based 
+optimization due to saturation.
+
+\section{Outputs Units}
+The choice of cost function is tightly coupled with the choice of output unit. The feedforward network
+provides a set of hidden featured defined by $\mathbf{h} = \mathit{f}(\mathbf{x};\mathbf{\theta})$, and
+the role of output layer is then to provide some additional transformation from the features to complete 
+the task.
+\subsection{Linear Units for Gaussian Output Distributions}
+Given features $\mathbf{h}$, a layer of linear output units produces a vector 
+$\mathbf{\hat{y}} = \mathbf{W}^T\mathbf{h} + \mathbf{b}$. The advantage of a linear unit is that it
+never saturates because the slope is always 1. 
+They are used to produce the mean of a conditional Gaussian distribution: 
+\begin{equation} 
+    p(\boldsymbol{y} \mid \boldsymbol{x}) = \mathcal{N}(\boldsymbol{y}; \hat{\boldsymbol{y}}, I). 
+\end{equation}
+As we saw before, this leads to a \textbf{squared error} for the loss. 
+\newline
+Furthermore, the network can output two numbers: the mean $\hat{y}$ and a value $v$ for the spread. 
+Since the variance must be strictly positive, we set:
+\begin{equation}
+    s^2 = \zeta(v) = \log(1 + e^v) \quad (\text{always} > 0)
+\end{equation}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        xmin=0, xmax=10,
+        ymin=0, ymax=0.45,
+        axis lines=middle,
+        xlabel={$y$},
+        ylabel={$p(y \mid \mathbf{x})$},
+        xtick={5},
+        xticklabels={$\hat{y}$},
+        ytick=\empty,
+        enlargelimits=false,
+        clip=false
+      ]
+        % Curva gaussiana centrata a x = 5 (rappresenta \hat{y})
+        \addplot[domain=0:10, samples=100, color=green!50!black, thick, fill=green!20, fill opacity=0.5] 
+          {exp(-((x-5)^2)/(2*1^2)) / (sqrt(2*pi)*1)} \closedcycle;
+        
+        % Linea tratteggiata dal picco all'asse x
+        \draw[dashed, thin, gray] (axis cs:5,0) -- (axis cs:5,0.3989);
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Gaussian Distribution $p(y \mid \mathbf{x})$ centred on $\hat{y}$.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\linewidth]{immagini/linear_unit.png} 
+    \caption{Graphical rapresentation of output unit}
+    \label{fig:linear_unit}
+\end{figure}
+
+\subsection{Sigmoid Units for Bernoulli Output Distributions}
+Usefull in classification problems with two classes. A Bernoulli distribution is defined by just a single
+number in the interval [0,1]. The NN needs to predict only $P(y=1 | \mathbf{x})$
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        xmin=-0.5, xmax=2,
+        ymin=0, ymax=1.1,
+        axis lines=middle,
+        xlabel={$y$},
+        ylabel={$p(y \mid \mathbf{x})$},
+        xtick={0.5,1.5},
+        xticklabels={0, 1},
+        ytick={0.3, 0.7},
+        yticklabels={$1-\hat{y}$, $\hat{y}$},
+        enlargelimits=false,
+        ybar,
+        bar width=20pt
+      ]
+        % Barre per Bernoulli (es. probabilità 0.3 per 0 e 0.7 per 1)
+        \addplot[fill=green!40!black, draw=green!50!black] coordinates {(0.5,0.3) (1.5,0.7)};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Distribuzione di Bernoulli $p(y \mid \mathbf{x})$ per classificazione binaria.}
+\end{figure}
 
 
 \section{Notation}
