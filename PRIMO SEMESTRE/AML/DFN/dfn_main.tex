@@ -517,4 +517,113 @@ The network outputs three groups of parameters for each component $c$:
 \item \textbf{Spreads $s_c^2(\mathbf{x})$}: constrained to be positive using softplus ($\zeta$) or exponential functions.
 \end{itemize}
 
-\section{Hideen units}
+\section{Hidden units and Activation Functions}
+\subsection{Choosing the hidden unit}
+Every hidden unit can be described as accepting a vector of inputs $\mathbf{x}$, computing an affine
+transformation $\mathbf{z} = \mathbf{W^T}\mathbf{x} + \mathbf{b}$, and then applying an element-wise
+non linear function $g(\mathbf{z})$ (\textit{activation function}). 
+So units differ only in the activation function, $g$ needs three rules:
+\begin{itemize}
+    \item non linearity
+    \item non zero slope $g^i(\mathbf{z})$
+    \item cheap computation
+\end{itemize} 
+Which $g$ works best is hard to predict, so it is obtained by trial and error.
+
+\subsection{Step Function}
+Easiest example of activation function, the slope is 0 everywhere, so the gradient descent gets no
+signal.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.85]
+    % Assi coordinati
+    \draw[->, >=stealth, gray, thick] (-4.5,0) -- (4.5,0);
+    \draw[->, >=stealth, gray, thick] (0,-1.5) -- (0,2);
+    
+    % Ticks e etichette sugli assi
+    \draw (-4,0.1) -- (-4,-0.1) node[below] {$-4$};
+    \draw (4,0.1) -- (4,-0.1) node[below] {$4$};
+    \draw (0.1,1) -- (-0.1,1) node[left] {$1$};
+    \draw (0.1,-1) -- (-0.1,-1) node[left] {$-1$};
+    
+    % Titolo del grafico
+    \node[above] at (0,2.1) {step};
+    
+    % Tratti della funzione
+    \draw[dashed, thick, orange!70!black] (-4,0) -- (0,0);
+    \draw[solid, thick, green!40!black] (0,1) -- (4,1);
+    
+    % Punti di discontinuità (pallino pieno a destra, vuoto a sinistra)
+    \fill[green!40!black] (0,1) circle (2pt);
+    \draw[orange!70!black, fill=white, thick] (0,0) circle (2pt);
+\end{tikzpicture}
+\end{figure}
+
+\subsection{Sigmoid and Hyperbolic Tangent Units}
+This two type of units are grouped together because they're functions are closely related: $tanh(z) = 2\sigma(2z) - 1$.
+The use of the sigmoid as activation function is discouraged due to the fact that it saturates when 
+z is very positive or very negative (Fig \ref{fig:comp_models}). When the sigmoid must be used, the hyperbolic tangent activation 
+typically performs bettern than the logistic sigmoid.  
+\begin{figure}[H]
+\centering
+% Grafico Sigmoide
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.75]
+    % Assi coordinati
+    \draw[->, >=stealth, gray, thick] (-4.5,0) -- (4.5,0);
+    \draw[->, >=stealth, gray, thick] (0,-0.5) -- (0,1.8);
+    
+    % Ticks e etichette
+    \draw (-4,0.1) -- (-4,-0.1) node[below] {$-4$};
+    \draw (4,0.1) -- (4,-0.1) node[below] {$4$};
+    \draw (0.1,1) -- (-0.1,1) node[left] {$1$};
+    
+    % Titolo
+    \node[above] at (0,1.8) {sigmoid $\sigma(z)$};
+    
+    % Funzione sigmoide: 1 / (1 + e^{-z})
+    \draw[green!40!black, thick, domain=-4:4, samples=100] plot (\x, {1/(1 + exp(-\x))});
+    
+    % Derivata della sigmoide: sigma * (1 - sigma)
+    \draw[dashed, orange!70!black, thick, domain=-4:4, samples=100] plot (\x, {(1/(1 + exp(-\x))) * (1 - (1/(1 + exp(-\x))))});
+\end{tikzpicture}
+\end{minipage}
+\hfill
+% Grafico Tanh
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.75]
+    % Assi coordinati
+    \draw[->, >=stealth, gray, thick] (-4.5,0) -- (4.5,0);
+    \draw[->, >=stealth, gray, thick] (0,-1.5) -- (0,1.8);
+    
+    % Ticks e etichette
+    \draw (-4,0.1) -- (-4,-0.1) node[below] {$-4$};
+    \draw (4,0.1) -- (4,-0.1) node[below] {$4$};
+    \draw (0.1,1) -- (-0.1,1) node[left] {$1$};
+    \draw (0.1,-1) -- (-0.1,-1) node[left] {$-1$};
+    
+    % Titolo
+    \node[above] at (0,1.8) {$\tanh(z)$};
+    
+    % Funzione tanh(z)
+    \draw[green!40!black, thick, domain=-4:4, samples=100] plot (\x, {tanh(\x)});
+    
+    % Derivata di tanh: 1 - tanh^2(z)
+    \draw[dashed, orange!70!black, thick, domain=-4:4, samples=100] plot (\x, {1 - (tanh(\x))^2});
+\end{tikzpicture}
+\end{minipage}
+
+\vspace{0.3cm}
+\centering
+\small
+\textcolor{green!40!black}{\rule{10pt}{2pt}} \textbf{function $g(z)$} \quad 
+\tikz[baseline=-.5mm]{\draw[dashed, orange!70!black, thick] (0,0) -- (10pt,0);} \textbf{slope $g'(z)$} \quad $z \in [-4, 4]$
+\caption{Sigmoid and hyperbolic tangent activation functions and their derivatives.}
+\label{fig:comp_models}
+\end{figure}
+
+\subsection{Rectified Linear Units And Their Generalizations}
+Use the activation function $g(z) = max {0, z}$.
