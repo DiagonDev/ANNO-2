@@ -626,4 +626,74 @@ typically performs bettern than the logistic sigmoid.
 \end{figure}
 
 \subsection{Rectified Linear Units And Their Generalizations}
-Use the activation function $g(z) = max {0, z}$.
+Those units use the activation function $g(z) = max(0, z)$. Easy to optimize because they
+are so similar to linear units with the only difference that ReLU outputs zero across half
+its domain. When active, the unit passes the error signal back \textbf{unchanged} (slope 1), 
+no saturation on the positive side. 
+\newline
+ReLU isn't differentiable\footnote{a function is differentiable if can be locally 
+approximated by a linear function} at 0, so the software return 1 or 0, in any case 
+most of the time when we work with float types it's rare to have a perfect 0 value. 
+\newline
+When initializing the parameters, it can be a good practice to set all elements of 
+$\mathbf{b}$ to a small positive value (i.e. 0.1) in order to avoid the dead units. 
+Infact if z < 0 for every training example, the unit always outputs 0, its slope 
+is always 0, and its weights never change again.
+There are some \textbf{generalization} that are based on using a nonzero slope $\alpha_i$
+when $z_i$ < 0: 
+\begin{equation}
+    h_i = g(z, \alpha)_i\ = max(0, z_i) + \alpha_imin(0, z_i)   
+\end{equation}
+and they are:
+\begin{itemize}
+    \item Absolute value: $\alpha = -1$ and so $g(z) = |z|$, used for object recognition from images
+    \item Leaky ReLU: $\alpha = 0,01$
+    \item Parametric ReLU $\alpha$ is learned, the data choose the leak.
+\end{itemize}
+One further generalization is the \textbf{Maxout units}, instead of applying an element-wise
+function $g(z)$, maxout units divide $\mathbf{z}$ into groups of $k$ values. A maxout unit
+can learn a piecewise linear, convex function with up to k pieces. It of course has a k
+times more weights per unit.
+\begin{equation}
+    h = \max_{j=1,\dots,k} \left( \boldsymbol{w}_j^\top \boldsymbol{x} + b_j \right)
+\end{equation}
+
+\subsubsection{Activations in Modern Networks}
+Modern networks use a variation of the ReLU that try to minimize the number of dead units,
+in Fig \ref{fig:modern_activations} there is a summarize of the 3 variations.
+\newline
+The difference between ReLU and GELU is the fact that GELU multiplies z by a soft gate
+while ReLU uses a hard gate. Thanks to this GELU gains fewer dead units.
+\newline
+Infact \textbf{ReLU} is defined as:
+\begin{equation}
+\text{ReLU}(z) = z \cdot \mathbb{1}[z > 0]
+\end{equation}
+and \textbf{GELU} is defined as:
+\begin{equation}
+\text{GELU}(z) = z \Phi(z), \quad \Phi(z) = P(Z \leq z), \quad Z \sim \mathcal{N}(0, 1)
+\end{equation}
+\textbf{SwiGLU} (Swish-Gated LU) the idea is similar as GELU, with $\sigma$ in place 
+of $\Phi$: $\text{SiLU}(z) = z \sigma(z)$. In GELU and SiLU the gate depends on $z$ 
+\textbf{itself}. In SwiGLU a \textbf{second linear map} of the input computes it:
+\begin{equation}
+\boldsymbol{h} = \underbrace{\left( \boldsymbol{W}_a^\top \boldsymbol{x} \right)}_{\text{content }\boldsymbol{a}} \odot \underbrace{\text{SiLU}\left( \boldsymbol{W}_b^\top \boldsymbol{x} \right)}_{\text{gate }\boldsymbol{s}}, \qquad \hat{\boldsymbol{y}} = \boldsymbol{W}_2^\top \boldsymbol{h}
+\end{equation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{immagini/relu.png} 
+    \caption{Comparison beetween activation functions}
+    \label{fig:modern_activations}
+\end{figure}
+
+In conclusion, when using ReLU or a variant, the rule is to pick random and small 
+weights and small biases (i. e. 0,01). It is important to not to start with weigths equal
+to 0 because other wise the gradient would \textbf{vanish}. It is important to don't 
+pick a too large weigths neither because otherwise the gradient would \textbf{explodes}.
+THe idea is to choose them from a set $Var(w)$ ruled by a variance value, there are two main 
+formulations:
+\begin{itemize}
+    \item Glorot: $\frac{2}{n_{in} + n_{out}}$
+    \item He: $\frac{2}{n_{in}}$
+\end{itemize}  
+where n is the number of inputs per unit.
