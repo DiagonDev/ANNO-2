@@ -697,3 +697,99 @@ formulations:
     \item He: $\frac{2}{n_{in}}$
 \end{itemize}  
 where n is the number of inputs per unit.
+
+\section{Architecture Design}
+The architecture of a network is defined by the number of the units the it has and how they are 
+connected to each other. A group of units that works in linear combinations is called \textbf{layer}, 
+most of architecture arrange these layers in a chain structure in which each layer is a function of the
+layer that preceded it. 
+\newline 
+In this structure, the first layer is given by $\mathbf{h}^{(1)} = g^{(1)} \left( \mathbf{W}^{(1)\top}
+\mathbf{x} + \mathbf{b}^{(1)} \right)$ and the second layer is given by $\mathbf{h}^{(2)} = g^{(2)} 
+\left( \mathbf{W}^{(2)\top} \mathbf{h}^{(1)} + \mathbf{b}^{(2)} \right)$ and so on. This mean that in 
+this chain-based architectures, the main architectural considerations are choosing the depth of the 
+network and the width of each layer. Generally speaking, one hidden layer is sufficient to fit the
+training set, but it isn't as optimized as a deeper network. The ideal network architecture for a task
+must be found via experimentation with the validation set error.
+
+\subsection{Universal Approximation Properties and Depth}
+Feedforward networks with hidden layers provide a universal approximation framework:
+\begin{theorem}[Universal Approximation Theorem]
+For any continuous $f$ on a closed and bounded region of $\mathbb{R}^d$ and any tolerance 
+$\varepsilon > 0$, there is a network with \textbf{one hidden layer} of $N$ units and a linear output,
+$$\hat{f}(\boldsymbol{x}) = \sum_{i=1}^{N} v_i \, g\left(\boldsymbol{w}_i^\top \boldsymbol{x} + 
+b_i\right),$$ with $|f(\boldsymbol{x}) - \hat{f}(\boldsymbol{x})| < \varepsilon$ for every 
+$\boldsymbol{x}$ in the region. Valid for sigmoid, tanh, ReLU: any continuous $g$ that is not a polynomial.
+\end{theorem}
+In other words, one hidden layer can represent any continuous function as accurately as we want.
+
+\subsubsection{Sigmoid Application of Universal Approximation Theorem}
+A hidden unit with one input computes $\sigma(wx + b) = \sigma(k(x - a))$ where $k = w$ is the 
+\textbf{weight} that sets the steepness and $ a = -\frac{b}{w}$ is the bias that describe where the 
+step happens.
+\newline
+In Fig \ref{fig:step_sigmoid} it is shown that a large weight turns the sigmoid into a step.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.35\linewidth]{immagini/step_sigmoid.png} 
+    \caption{Steep sigmoid}
+    \label{fig:step_sigmoid}
+\end{figure}
+If we take a network with one input and two hidden sigmoid, each unit is a \textbf{soft step} and their
+difference is a \textbf{bump} (Fig \ref{fig:bump_sigmoid}).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.35\linewidth]{immagini/bump_sigmoid.png} 
+    \caption{Two sigmoid units build a bump}
+    \label{fig:bump_sigmoid}
+\end{figure}
+\noindent
+So in conclusion the approximation can be done with the sums of bumps, the recipe is:
+\begin{enumerate}
+    \item Split [0,1] into N intervals of width 1/N
+    \item Put a bump of height $h_i = f(interval\ centre)\ \forall\ interval\ i$
+    \item Add the bumps
+\end{enumerate}
+So formally in the network:
+\begin{equation}
+    \hat{f}(x) = h_1 + \sum_{i=2}^{N} (h_i - h_{i-1}) \, \sigma(k(x - a_i))
+\end{equation}
+As we can see steps are shared within the bumps(Fig \ref{fig:curve_sigmoid}), so the sum needs only $N - 1$ sigmoid unit plus 
+a bias.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.35\linewidth]{immagini/network_curve_sigmoid.png} 
+    \caption{Two sigmoid units build a bump}
+    \label{fig:curve_sigmoid}
+\end{figure}
+\noindent
+The approximation is corrected then by modifing the number of units and the parameters, in 
+Fig \ref{fig:smooth_curve} we can see that with a moderate k the steps overlap and the sum becomes
+a smooth curve.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{immagini/smooth_curve.png} 
+    \caption{Smooth curve evolution}
+    \label{fig:smooth_curve}
+\end{figure}
+\noindent
+By the same logic we can also represent \textbf{Peak} and \textbf{Kink} (Fig \ref{fig:peak_kink})
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\linewidth]{immagini/peak_kink_sigmoid.png} 
+    \caption{Peak and Kink evolution}
+    \label{fig:peak_kink}
+\end{figure}
+\noindent
+For the case of \textbf{Jumps} when the function is discontinuos, the bigger is k and the narrower the
+zone of the error is, but it is never zero for definition, because the sum of sigmoid is continuous as 
+shown in Fig \ref{fig:jump_sigmoid}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\linewidth]{immagini/jump_sigmoid.png} 
+    \caption{Jump approximation}
+    \label{fig:jump_sigmoid}
+\end{figure}
+
+\subsubsection{ReLU Application of Universal Approximation Theorem}
+SLIDE 32
