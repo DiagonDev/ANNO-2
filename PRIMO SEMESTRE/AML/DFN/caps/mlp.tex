@@ -1,0 +1,35 @@
+The forward pass through an $L$-layer network is defined as:
+\begin{align*}
+    \mathbf{h}^{(0)} &= \mathbf{x} \\
+    \mathbf{h}^{(l)} &= g(\mathbf{W}^{(l)\top} \mathbf{h}^{(l-1)} + \mathbf{b}^{(l)}), \quad l = 1, \dots, L - 1 \\
+    \hat{\mathbf{y}} &= o(\mathbf{W}^{(L)\top} \mathbf{h}^{(L-1)} + \mathbf{b}^{(L)})
+\end{align*}
+\newline
+The last pre-activation, $\mathbf{z}^{(L)} = \mathbf{W}^{(L)\top} \mathbf{h}^{(L-1)} + \mathbf{b}^{(L)}$, is called the vector of \textbf{logits}; the output function $o$ (identity, sigmoid or softmax) turns it into the prediction.
+
+\begin{definition}[Number of parameters]
+Layer $l$ has $d_{l-1} \cdot d_l$ weights and $d_l$ biases:
+\begin{equation}
+    |\theta| = \sum_{l=1}^{L} (d_{l-1} + 1) d_l
+\end{equation}
+\end{definition}
+Most parameters sit in the first layer. In Fig \ref{tab:mnist_parameters} there is an example of 
+the calculus of parameters. The MLP is : $784 \to 256 \to 128 \to 10$. 
+Input: $28 \times 28 = 784$ pixels. Output: $10$ classes.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lccc}
+        \hline
+        Layer & $\mathbf{W}^{(l)}$ & biases & parameters \\
+        \hline
+        1 & $784 \times 256$ & $256$ & $200\,960$ \\
+        2 & $256 \times 128$ & $128$ & $32\,896$ \\
+        3 (output) & $128 \times 10$ & $10$ & $1\,290$ \\
+        \hline
+        \textbf{total} & & & \textbf{$235\,146$} \\
+        \hline
+    \end{tabular}
+    \caption{Parameter count breakdown for the MNIST network architecture.}
+    \label{tab:mnist_parameters}
+\end{table}

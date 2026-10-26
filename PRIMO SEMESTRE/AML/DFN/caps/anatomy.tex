@@ -1,0 +1,49 @@
+
+For one layer of $m$ units (all read the same $\mathbf{x}$):
+\begin{equation}
+    \mathbf{h} = g(\mathbf{W}^\top \mathbf{x} + \mathbf{b}), \quad \mathbf{x} \in \mathbb{R}^d, \; \mathbf{W} \in \mathbb{R}^{d \times m}, \; \mathbf{b} \in \mathbb{R}^m
+\end{equation}
+Column $j$ of $\mathbf{W}$ holds the weights of unit $j$; $g$ is applied to each entry separately.
+\newline
+$z = \mathbf{w}^\top \mathbf{x} + b$ is the \textbf{pre-activation}: a weighted sum plus bias. $h = g(z)$ is the \textbf{activation}; $g$ is a fixed non-linear function, e.g. the ReLU $g(z) = \max\{0, z\}$.
+\newline
+As an example with $d = 3$ inputs and $m = 2$ ReLU units:
+\begin{align*}
+    \mathbf{x} &= (1, 0, 2), \quad \mathbf{W} = \begin{bmatrix} 1 & -1 \\ 0 & 2 \\ 1 & 1 \end{bmatrix}, \quad \mathbf{b} = (0, -1) \\
+    \mathbf{z} &= \mathbf{W}^\top \mathbf{x} + \mathbf{b} = (1 + 0 + 2, -1 + 0 + 2) + (0, -1) = (3, 0) \\
+    \mathbf{h} &= \max\{0, \mathbf{z}\} = (3, 0)
+\end{align*}
+
+For $n$ examples at once: $\mathbf{H} = g(\mathbf{X}\mathbf{W} + \mathbf{1}\mathbf{b}^\top)$; row $i$ of $\mathbf{H}$ is the layer output for example $i$.
+
+\begin{tikzpicture}[
+    input node/.style={circle, draw=green!40!black, fill=green!20, thick, minimum size=8mm, inner sep=0pt},
+    neuron/.style={circle, draw=green!50!black, fill=green!60!black, text=white, thick, minimum size=1.2cm, inner sep=0pt},
+    >=Stealth
+]
+
+    % Nodi di input
+    \node[input node] (x1) at (0, 2) {$x_1$};
+    \node[input node] (x2) at (0, 0) {$x_2$};
+    \node[input node] (x3) at (0, -2) {$x_3$};
+
+    % Neurone centrale
+    \node[neuron] (neuron) at (3.5, 0) {$\sum \mid g$};
+    \node[below=2pt of neuron, font=\small] {$+b$};
+
+    % Archi con pesi
+    \draw[thick, black!60] (x1) -- node[above left, font=\small] {$w_1$} (neuron);
+    \draw[thick, black!60] (x2) -- node[above, font=\small] {$w_2$} (neuron);
+    \draw[thick, black!60] (x3) -- node[below left, font=\small] {$w_3$} (neuron);
+
+    % Uscita
+    \draw[thick, black!60, ->] (neuron) -- ++(1.5, 0) node[right, black, font=\small] {$h$};
+
+\end{tikzpicture}
+
+\begin{definition}[Saturation]
+    A unit is saturated when $|z|$ is so large that its output hardly changes: the slope $g'(z)$ is 
+    almost 0
+\end{definition}
+So when the slope is almost 0 the derivative is 0, is impossible to know from data how much the model
+has to change his parameters.
