@@ -105,7 +105,7 @@ h(x) = \max\left(0, w x + b\right)
 \end{equation}
 where the weight $w$ controls the slope and the bias $b$ determines the activation threshold (the elbow point).
 \begin{itemize}
-\item Subtracting two shifted ReLU units with opposite slopes yields a \textbf{triangular bump} (tent function).
+\item Subtracting \textbf{three} shifted ReLU units with opposite slopes yields a \textbf{triangular bump} (tent function).
 \item Summing these triangular bumps creates a piecewise linear spline that fits any continuous 1D target function.
 \end{itemize}
 
