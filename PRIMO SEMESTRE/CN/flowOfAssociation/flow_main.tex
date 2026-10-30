@@ -1,0 +1,38 @@
+\textbf{VALUTARE SE METTERE GRAFICI}
+
+
+\section{Graph Concepts}
+A \textbf{Graph} is a collection of \textbf{nodes} (vertices) and \textbf{edges}.
+\begin{definition}[Adjacent nodes]
+    Two nodes are adjacent if there is an edge between them    
+\end{definition}
+\begin{definition}[Complete graph]
+    A graph is complete if there is an edge between every pair of nodes   
+\end{definition}
+\begin{definition}[Directed graph]
+    A graph is directed\footnote{orientato} if the all his edges are directed   
+\end{definition}
+In a directed graph we can see some sets of nodes, based on the relationships showed by the edges:
+\begin{itemize}
+    \item \textbf{pa(X)} is the parent set of X
+    \item \textbf{ch(Y)} is the child set of Y
+    \item \textbf{de(Y)} is the descendants of Y, that is the set of nodes which can be reached by Y
+    \item \textbf{an(Z)} is the set of ancestors of Z, the set of nodes from which Z can be reached.
+\end{itemize}
+It is also important to distinguish between a \textbf{Path}, that is any sequence of adjacent nodes, 
+regardless of the direction of the edges that join them, and a \textbf{Directed Path}, that is a path
+between two nodes traced along the arrows. So as a conseguence, in a directed path it can't be any node
+on the path that has two edges on the path directed into it or out of it.
+\newline
+\section{From PGMs to CGMs}
+The \textit{Probabilitstic Grapical models} are statistical models more often represented by 
+\textbf{Bayesian Networks} in which we want to study the associations or the correlations between 
+variables by modelling the \textbf{Data Distribution}:
+\begin{definition}[Chain Rule]
+    \begin{equation}
+        \begin{aligned}
+            P(X_1, X_2, \dots, X_n) &= P(X_1) P(X_2 \mid X_1) P(X_3 \mid X_1, X_2) \cdots P(X_n \mid X_1, \dots, X_{n-1}) \\
+            &= P(X_1) \prod_{i=2}^{n} P(X_i \mid X_1, \dots, X_{i-1})
+        \end{aligned}
+    \end{equation}
+\end{definition}
